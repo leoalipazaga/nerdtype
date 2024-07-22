@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NerdType</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --green: #00b755;
+        --yellow: #daaf38;
+        --red: #ca4754;
+        --black: #222;
+        --gray: #999;
+      }
+
+      body {
+        background: var(--black);
+        font-family: Menlo, monospace, Avenir, Helvetica, Arial, sans-serif;
+        display: grid;
+        justify-content: center;
+        min-height: 100dvh;
+        margin: 0;
+      }
+
+      nav {
+        padding: 10px 0;
+        border-bottom: 1px solid #444;
+        height: fit-content;
+
+        header {
+          width: 60%;
+          margin: auto;
+
+          @media (max-width: 640px) {
+            width: 90%;
+          }
+
+          @media (max-width: 768px) {
+            width: 80%;
+          }
+        }
+
+        & > header > h1 {
+          margin: 0;
+        }
+      }
+
+      section#game {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px;
+        margin: auto;
+        width: 60%;
+
+        @media (max-width: 640px) {
+          width: 90%;
+        }
+
+        @media (max-width: 768px) {
+          width: 80%;
+        }
+
+        input {
+          opacity: 0;
+          position: absolute;
+          z-index: -999;
+        }
+
+        & > time {
+          color: var(--yellow);
+        }
+
+        .paragraph {
+          position: relative;
+          width: fit-content;
+        }
+
+        p {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 3px 8px;
+          font-size: 20px;
+          line-height: 30px;
+        }
+
+        .cursor {
+          position: absolute;
+          left: 0;
+          background: var(--yellow);
+          width: 2px;
+          height: 22px;
+          transition: 0.2s ease-in-out;
+          animation: blink 1s ease-in-out infinite;
+        }
+
+        .cursor.typing {
+          animation: none;
+        }
+
+        x-letter {
+          color: var(--gray);
+          position: relative;
+
+          &.active::before {
+            content: '|';
+            display: none;
+            color: var(--yellow);
+            position: absolute;
+            left: -75%;
+            top: 0;
+            font-size: 20px;
+            line-height: 0.7;
+            animation: 1s blink ease-in-out infinite;
+            transition: position 0.5s ease-in-out;
+          }
+
+          &.hide {
+            display: none;
+          }
+
+          &.show {
+            display: block;
+          }
+
+          &.active.is-last::before {
+            left: 45%;
+          }
+
+          &.correct {
+            color: var(--green);
+          }
+
+          &.incorrect {
+            color: var(--red);
+          }
+        }
+
+        x-word {
+          transition: text-decoration 0.5s ease-in-out;
+
+          &.marked {
+            text-decoration: underline;
+            text-decoration-thickness: 1.5px;
+            text-decoration-color: var(--red);
+          }
+        }
+      }
+
+      section#results {
+        display: flex;
+        justify-content: space-between;
+        width: 60%;
+        margin: auto;
+        visibility: hidden;
+
+        &.visible {
+          visibility: visible;
+        }
+
+        &.hide {
+          visibility: hidden;
+        }
+
+        h2 {
+          font-size: 18px;
+          color: var(--gray);
+        }
+      }
+
+      section#actions {
+        display: flex;
+        justify-content: center;
+
+        button {
+          padding: 10px;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+
+          svg {
+            stroke: var(--gray);
+            transition: stroke 0.2s ease-in-out;
+          }
+
+          &:hover svg {
+            stroke: #fff;
+          }
+        }
+      }
+
+      .socials {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        svg {
+          stroke: var(--gray);
+          transition: stroke 0.2s ease-in-out;
+        }
+
+        svg:hover {
+          stroke: #fff;
+        }
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav>
+      <header>
+        <h1>Nerdtype</h1>
+      </header>
+    </nav>
+    <main>
+      <section id="game">
+        <time datetime="">30</time>
+        <div class="paragraph">
+          <p>Paragraph</p>
+          <span class="cursor"></span>
+        </div>
+        <input autofocus />
+      </section>
+      <section id="actions">
+        <button class="reload">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="icon icon-tabler icon-tabler-reload"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="#2c3e50"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path
+              d="M19.933 13.041a8 8 0 1 1 -9.925 -8.788c3.899 -1 7.935 1.007 9.425 4.747"
+            />
+            <path d="M20 4v5h-5" />
+          </svg>
+        </button>
+      </section>
+      <section id="results">
+        <div>
+          <h2>WPM</h2>
+          <h3 id="wpm">25</h3>
+        </div>
+        <div>
+          <h2>accuracy</h2>
+          <h3 id="accuracy">80%</h3>
+        </div>
+        <div>
+          <h2>characters</h2>
+          <h3 id="characters">180</h3>
+        </div>
+        <div>
+          <h2>time</h2>
+          <h3 id="time">30</h3>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="socials">
+        <a href="https://github.com/leoalipazaga/" target="_blank">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="icon icon-tabler icon-tabler-brand-github"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path
+              d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"
+            />
+          </svg>
+        </a>
+        <a href="https://www.linkedin.com/in/leoalipazaga/" target="_blank">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="icon icon-tabler icon-tabler-brand-linkedin"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path
+              d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"
+            />
+            <path d="M8 11l0 5" />
+            <path d="M8 8l0 .01" />
+            <path d="M12 16l0 -5" />
+            <path d="M16 16v-3a2 2 0 0 0 -4 0" />
+          </svg>
+        </a>
+      </div>
+    </footer>
+  </body>
+  <script>
+    const $ = document.querySelector.bind(document);
+    const $$ = document.querySelectorAll.bind(document);
+    const $actions = $('section#actions');
+    const $reload = $actions.querySelector('button.reload');
+    const $paragraph = $('#game div.paragraph > p');
+    const $cursor = $('#game div.paragraph > span.cursor');
+    const $time = $('time');
+    const $input = $('#game > input');
+    const $results = $('section#results');
+    const $game = $('#game');
+    const $wpm = $results.querySelector('h3#wpm');
+    const $accuracy = $results.querySelector('h3#accuracy');
+    const $characters = $results.querySelector('h3#characters');
+    const INITIAL_TIME = 30;
+    // const TEXT =
+    //   "The quick brown fox jumps over the lazy dog and John Doe is trying to build a nerdtype for fun and profit using vanillajs for the typing test speed";
+    const TEXT = `In the early morning mist, the forest breathed with a quiet serenity. Sunlight filtered through the canopy, dappling the forest floor with patches of golden warmth. Birds chirped softly, their melodies echoing through the trees. Nature's symphony enveloped the tranquil scene, inviting a sense of peace and reflection in the heart of the wilderness.`;
+    const countText = TEXT.split(/\s/).length;
+    let currentTime = INITIAL_TIME;
+    let words = [];
+    let intervalId;
+    initGame();
+    initEvents();
+
+    function showResults(time) {
+      if (time !== 0) {
+        return;
+      }
+      const countCharacters = [...$$('x-letter')].length;
+      const countMarkedWords = [...$$('x-word.marked')].length;
+      const countCorrectWords = [...$$('x-word.correct')].length;
+      const countIncorrectCharacters = [...$$('x-letter.incorrect')].length;
+      const countCorrectCharacters = [...$$('x-letter.correct')].length;
+      const total = countCorrectCharacters + countIncorrectCharacters;
+      const accuracy = ((countCorrectCharacters / total) * 100 || 0).toFixed(2);
+      $accuracy.innerText = `${accuracy}%`;
+      $characters.innerText = countCharacters;
+      $wpm.innerText = (countCorrectCharacters / 5 || 0).toFixed(2);
+      $results.classList.remove('hide');
+      $results.classList.add('visible');
+    }
+
+    function startClock(startTime) {
+      clearInterval(intervalId);
+      let currentTime = startTime;
+      intervalId = setInterval(() => {
+        currentTime--;
+        $time.textContent = currentTime;
+        showResults(currentTime);
+        if (currentTime === 0) {
+          clearInterval(intervalId);
+        }
+      }, 1000);
+    }
+
+    function initGame() {
+      startClock(INITIAL_TIME);
+      words = TEXT.split(' ').slice(0, 32);
+      $results.classList.add('hide');
+      $input.value = '';
+      $time.textContent = INITIAL_TIME;
+      $paragraph.innerHTML = words
+        .map((word) => {
+          const letters = word.split('');
+          const $lettersEls = `${letters
+            .map((letter) => `<x-letter>${letter}</x-letter>`)
+            .join('')}`;
+          return `<x-word>${$lettersEls}</x-word>`;
+        })
+        .join('');
+
+      const $firstWord = $paragraph.querySelector('x-word');
+      $firstWord.classList.add('active');
+      $firstWord.querySelector('x-letter').classList.add('active');
+    }
+
+    function initEvents() {
+      document.addEventListener('keydown', () => {
+        $input.focus();
+      });
+      $reload.addEventListener('click', initGame);
+      $input.addEventListener('keydown', onKeyDown);
+      $input.addEventListener('keyup', onKeyUp);
+    }
+
+    function onKeyDown(event) {
+      const { key } = event;
+      const $currentLetter = $('x-letter.active');
+      const $currentWord = $('x-word.active');
+      $cursor.classList.add('typing');
+      if (key === ' ') {
+        event.preventDefault();
+        const $nextWord = $currentWord.nextElementSibling;
+        const $nextLetter = $nextWord.querySelector('x-letter');
+        $currentWord.classList.remove('active', 'marked');
+        $currentLetter.classList.remove('active');
+        $nextWord.classList.add('active');
+        $nextLetter.classList.add('active');
+        $input.value = '';
+        const hasMissedLetters = $currentWord.querySelectorAll(
+          'x-letter:not(.correct)'
+        ).length;
+        const classToAdd = hasMissedLetters ? 'marked' : 'correct';
+        $currentWord.classList.add(classToAdd);
+      }
+
+      if (key === 'Backspace') {
+        const $prevWord = $currentWord.previousElementSibling;
+        const $prevLetter = $currentLetter.previousElementSibling;
+        if (!$prevWord && !$prevLetter) {
+          e.preventDefault();
+          return;
+        }
+        const $wordMarked = $paragraph.querySelector('x-word.marked');
+        if (!$prevLetter && $wordMarked) {
+          $prevWord.classList.remove('marked');
+          $prevWord.classList.add('active');
+          const $letterToGo = $prevWord.querySelector('x-letter:last-child');
+          $currentLetter.classList.remove('active');
+          $letterToGo.classList.add('active');
+          const words = [
+            ...$prevWord.querySelectorAll(
+              'x-letter.correct, x-letter.incorrect'
+            ),
+          ]
+            .map(($el) =>
+              $el.classList.contains('correct') ? $el.innerHTML : '*'
+            )
+            .join('');
+
+          $input.value = words;
+        }
+      }
+    }
+
+    function onKeyUp() {
+      const $currentWord = $paragraph.querySelector('x-word.active');
+      const $currentLetter = $currentWord.querySelector('x-letter.active');
+      const currentWord = $currentWord.innerText.trim();
+      $input.maxLength = currentWord.length;
+      const $allLetters = $currentWord.querySelectorAll('x-letter');
+
+      $allLetters.forEach(($letter) =>
+        $letter.classList.remove('correct', 'incorrect')
+      );
+
+      $input.value.split('').forEach((char, index) => {
+        const $letter = $allLetters[index];
+        const letterToCheck = currentWord[index];
+        const isCorrect = char === letterToCheck;
+        const letterClass = isCorrect ? 'correct' : 'incorrect';
+        $letter.classList.add(letterClass);
+      });
+
+      $currentLetter.classList.remove('active', 'is-last');
+      const inputLength = $input.value.length;
+      const $nextActiveLetter = $allLetters[inputLength];
+      if ($nextActiveLetter) {
+        $nextActiveLetter.classList.add('active');
+        // IMPROVE: eg. create a function and nextLetter element as arg
+        const paragramPosition = $paragraph.getBoundingClientRect();
+        const nextPosition = $nextActiveLetter.getBoundingClientRect();
+        const moveX = nextPosition.x - paragramPosition.x;
+        const moveY = nextPosition.y - paragramPosition.y + 20;
+        $cursor.style.left = `${moveX}px`;
+        $cursor.style.top = `${moveY}px`;
+      } else {
+        $currentLetter.classList.add('active', 'is-last');
+        const paragramPosition = $paragraph.getBoundingClientRect();
+        const nextPosition = $currentLetter.getBoundingClientRect();
+        const moveX = nextPosition.x - paragramPosition.x + 9;
+        const moveY = nextPosition.y - paragramPosition.y + 20;
+        $cursor.style.left = `${moveX}px`;
+        $cursor.style.top = `${moveY}px`;
+      }
+    }
+
+    function gameOver() {
+      $game.style.display = 'none';
+      $results.style.display = 'flex';
+      const correctWords = $paragraph.querySelectorAll('x-word.correct').length;
+      const correctLetters =
+        $paragraph.querySelectorAll('x-letter.correct').length;
+      const incorrectLetter =
+        $paragraph.querySelectorAll('x-letter.incorrect').length;
+      const totalLetters = correctLetters + incorrectLetter;
+      const accuracy = totalLetters ? (correctLetters / totalLetters) * 100 : 0;
+      const wpm = correctLetters / 5;
+      $wpm.textContent = wpm.toFixed(2);
+      $accuracy.textContent = `${accuracy.toFixed(2)}%`;
+    }
+  </script>
+</html>
